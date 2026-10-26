@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rock Paper Scissors | Flask Game</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container">
+    <header class="hero">
+      <div class="eyebrow">PYTHON · FLASK · SQL</div>
+      <h1>Rock <span>Paper</span> Scissors</h1>
+      <p>A classic game powered by Flask and an SQL database.</p>
+    </header>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if last_round %}
+    <section class="result-card">
+      <div class="result-label">LAST ROUND</div>
+      <div class="versus">
+        <div><span class="choice-icon">{{ {'rock':'✊','paper':'✋','scissors':'✌️'}[last_round.player] }}</span><small>You</small><strong>{{ last_round.player|title }}</strong></div>
+        <div class="vs">VS</div>
+        <div><span class="choice-icon">{{ {'rock':'✊','paper':'✋','scissors':'✌️'}[last_round.computer] }}</span><small>Computer</small><strong>{{ last_round.computer|title }}</strong></div>
+      </div>
+      <div class="outcome {{ last_round.result }}">
+        {% if last_round.result == 'win' %}You won this round! 🎉
+        {% elif last_round.result == 'loss' %}Computer wins this round.
+        {% else %}It's a draw!{% endif %}
+      </div>
+    </section>
+    {% endif %}
+
+    <section class="game-panel">
+      <h2>Make your move</h2>
+      <p class="muted">Choose one option to play a round.</p>
+      <form action="{{ url_for('play') }}" method="post" class="choices">
+        <button class="choice-button" name="choice" value="rock" type="submit">
+          <span>✊</span><strong>Rock</strong><small>Crushes scissors</small>
+        </button>
+        <button class="choice-button" name="choice" value="paper" type="submit">
+          <span>✋</span><strong>Paper</strong><small>Covers rock</small>
+        </button>
+        <button class="choice-button" name="choice" value="scissors" type="submit">
+          <span>✌️</span><strong>Scissors</strong><small>Cuts paper</small>
+        </button>
+      </form>
+    </section>
+
+    <section class="stats-grid">
+      <div class="stat"><span>Total games</span><strong>{{ stats.games }}</strong></div>
+      <div class="stat"><span>Wins</span><strong class="win-text">{{ stats.wins }}</strong></div>
+      <div class="stat"><span>Losses</span><strong class="loss-text">{{ stats.losses }}</strong></div>
+      <div class="stat"><span>Draws</span><strong>{{ stats.draws }}</strong></div>
+    </section>
+
+    <section class="history-panel">
+      <div class="section-heading">
+        <div><h2>Recent rounds</h2><p class="muted">Saved in the SQL database</p></div>
+        {% if stats.games %}
+        <form action="{{ url_for('reset_history') }}" method="post" onsubmit="return confirm('Clear all game history?')">
+          <button class="clear-button" type="submit">Clear history</button>
+        </form>
+        {% endif %}
+      </div>
+      {% if history %}
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Player</th><th>Computer</th><th>Result</th><th>Played at</th></tr></thead>
+          <tbody>
+          {% for row in history %}
+            <tr>
+              <td>{{ row.player_choice|title }}</td>
+              <td>{{ row.computer_choice|title }}</td>
+              <td><span class="badge {{ row.result }}">{{ row.result|title }}</span></td>
+              <td class="date">{{ row.played_at }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="empty-state">No rounds yet. Pick a move above to start playing.</div>
+      {% endif %}
+    </section>
+
+    <footer>Built with Flask + SQLite · Ready to deploy on AWS EC2</footer>
+  </main>
+</body>
+</html>
